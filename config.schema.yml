@@ -1,0 +1,10 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+description: Configuration for running the flooding hazard summary
+type: object
+properties:
+  required:
+    - download_dir
+  download_dir:
+    type: string
+    description: Path to the directory for pre-existing download climate data
+    default: './download/'

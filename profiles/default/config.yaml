@@ -1,0 +1,6 @@
+rerun-incomplete: true
+cores: 4
+printshellcmds: true
+rerun-triggers: mtime
+use-conda: true
+configfile: config.yml

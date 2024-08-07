@@ -1,0 +1,8 @@
+channels:
+  - conda-forge
+channel_priority: strict
+dependencies:
+  - xarray
+  - dask
+  - netCDF4
+  - bottleneck
