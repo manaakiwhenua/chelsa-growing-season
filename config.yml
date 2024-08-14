@@ -1,2 +1,6 @@
-download_dir: /home/richard/Downloads/isimip-download-e302e69c520b673683202e55a0b2b1927b96ab28
-log_dir: '/mnt/exthdd/landcare/growing-seasons/log'
+# climate_data: '/media/lawr/TRANSCEND/growing-season/isimip-download-ad61b2b39a451f3f4595cb9620c22d36b960fb85.zip'
+climate_data: '/media/lawr/T7/growing-season/isimip-download-f3c686fe8e9d192d748fb281568833dac3fa6d7e.zip'
+data_dir: '/media/lawr/T7/growing-season/data'
+log_dir: '/media/lawr/T7/growing-season/log'
+
+year_range: [1996,2016]
