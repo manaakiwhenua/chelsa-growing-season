@@ -14,6 +14,8 @@ YEAR_RANGE = config.get('year_range')
 
 GROWING_SEASON = DATA_D / 'growing-season.nc'
 MEDIAN_FROST = DATA_D / 'median_frost-{start}-{end}.nc'
+SUMMARY_TABLE_CSV = DATA_D / 'median_frost-{start}-{end}.csv'
+SUMMARY_TABLE_PDF = DATA_D / 'median_frost-{start}-{end}.pdf'
 
 FROST_PERIODS = [
     range(2006,2017),
@@ -21,7 +23,7 @@ FROST_PERIODS = [
 ]
 
 rule all:
-    input: map(lambda period: expand(MEDIAN_FROST, start=period[0], end=period[-1]), FROST_PERIODS)
+    input: map(lambda period: expand(SUMMARY_TABLE_CSV, start=period[0], end=period[-1]), FROST_PERIODS)
 
 rule unzip_climate_data:
     output: directory(DATA_D / 'chelsa')
@@ -46,10 +48,18 @@ rule median_frost_doy:
     output: MEDIAN_FROST
     log: LOG_D / 'median_frost_doy-{start}-{end}.log'
     conda: 'envs/netcdf.yml'
-    wildcard_constraints:
-        start='\d{4}',
-        end='\d{4}'
     params:
         start=lambda wc: int(wc.start),
         end=lambda wc: int(wc.end)
     script: 'scripts/median_frost_doy.py'
+
+rule summary_table:
+    input: MEDIAN_FROST
+    output:
+        csv=SUMMARY_TABLE_CSV,
+        pdf=SUMMARY_TABLE_PDF
+    log: LOG_D / 'summay_table-{start}-{end}.log'
+    conda: 'envs/netcdf.yml'
+    params:
+        summary_table=config.get('summary_table')
+    script: 'scripts/summary_table.py'

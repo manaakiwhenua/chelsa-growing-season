@@ -5,4 +5,5 @@ dependencies:
   - xarray
   - dask
   - netCDF4
-  - bottleneck
+  - shapely
+  - geopandas
