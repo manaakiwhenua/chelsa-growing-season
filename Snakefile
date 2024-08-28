@@ -25,6 +25,9 @@ FROST_PERIODS = [
 rule all:
     input: map(lambda period: expand(SUMMARY_TABLE_CSV, start=period[0], end=period[-1]), FROST_PERIODS)
 
+###
+# chelsa climate data
+
 rule unzip_climate_data:
     output: directory(DATA_D / 'chelsa')
     log: LOG_D / 'unzip_climate_data'
@@ -63,3 +66,18 @@ rule summary_table:
     params:
         summary_table=config.get('summary_table')
     script: 'scripts/summary_table.py'
+
+#
+###
+# cliflo data
+RAW_CLIFLO_DATA = './static/cliflo/all_cf_data_*.csv'
+RAW_CLIFLO_STATIONS = './static/cliflo/all_cf_stations_*.csv'
+
+rule combine_raw_clifo:
+    output: DATA_D / 'cliflo_data.gpq'
+    log: LOG_D / 'combine_raw_clifo'
+    conda: 'envs/geoparquet.yml'
+    params:
+        climate_data=RAW_CLIFLO_DATA,
+        station_data=RAW_CLIFLO_STATIONS
+    script: 'scripts/combine_cliflo_data.py'
