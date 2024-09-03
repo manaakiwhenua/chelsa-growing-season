@@ -1,0 +1,11 @@
+channels:
+  - conda-forge
+channel_priority: strict
+dependencies:
+  - pandas
+  - geopandas
+  - pyarrow
+  - scipy
+  - rasterio
+  - libgdal-arrow-parquet
+  - dask

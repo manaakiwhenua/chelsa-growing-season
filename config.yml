@@ -1,60 +1,8 @@
 # climate_data: '/media/lawr/TRANSCEND/growing-season/isimip-download-ad61b2b39a451f3f4595cb9620c22d36b960fb85.zip'
 climate_data: '/media/lawr/T7/growing-season/isimip-download-f3c686fe8e9d192d748fb281568833dac3fa6d7e.zip'
+elevation_data: '/media/lawr/T7/growing-season/lris-nzenvds-elevation-v10-GTiff.zip'
+
 data_dir: '/media/lawr/T7/growing-season/data'
 log_dir: '/media/lawr/T7/growing-season/log'
 
 year_range: [1996,2016]
-
-summary_table:
-  - main_office_location: Whangarei
-    local_authority: Northland
-    council_type: Regional
-    location: -35.72583836527809, 174.3182966220536
-  - main_office_location: Auckland
-    local_authority: Auckland
-    council_type: Unitary City
-    location: -36.84910003314773, 174.7624276980476
-  - main_office_location: Hamilton
-    local_authority: Waikato
-    council_type: Regional
-    location: -37.78784760494018, 175.27775019513305
-  - main_office_location: Whakatane
-    local_authority: Bay of Plenty
-    council_type: Regional
-    location: -37.687047265349584, 176.17094363251286
-  - main_office_location: Napier
-    local_authority: "Hawke's Bay"
-    council_type: Regional
-    location: -39.48128372589111, 176.94106349134964
-  - main_office_location: Palmerston North
-    local_authority: Horizons
-    council_type: Regional
-    location: -40.34951674030303, 175.61863491826324
-  - main_office_location: Wellington
-    local_authority: Greater Wellington
-    council_type: Regional
-    location: -41.29222758990639, 174.77732891134286
-  - main_office_location: Nelson
-    local_authority: Nelson
-    council_type: Unitary city
-    location: -41.27126372264196, 173.28436272016046
-  - main_office_location: Nelson
-    local_authority: Tasman
-    council_type: Unitary district
-    location: -41.3392587951722, 173.1981931132161
-  - main_office_location: Blenheim
-    local_authority: Marlborough
-    council_type: Unitary district
-    location: -41.5104021537473, 173.9629277466653
-  - main_office_location: Christchurch
-    local_authority: Environment Canterbury
-    council_type: Regional
-    location: -43.53563171050443, 172.6388749619776
-  - main_office_location: Greymouth
-    local_authority: West Coast
-    council_type: Regional
-    location: -42.49872469930274, 171.17362865111505
-  - main_office_location: Dunedin
-    local_authority: Otago
-    council_type: Regional
-    location: -45.87638075584765, 170.5057046659895

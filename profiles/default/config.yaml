@@ -3,4 +3,7 @@ cores: 4
 printshellcmds: true
 rerun-triggers: mtime
 use-conda: true
-configfile: config.yml
+configfiles:
+  - config.yml
+  - static/summary_table.yml
+  - config.local.yml
