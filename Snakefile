@@ -19,6 +19,7 @@ FROST_PERIODS = [
     range(1996,2017)
 ]
 
+include: "rules/elevation.smk"
 include: "rules/chelsa.smk"
 include: "rules/clifo.smk"
 

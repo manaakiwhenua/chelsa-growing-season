@@ -2,9 +2,9 @@ CLIFO_DOWNLOAD_STATIONS = 'static/clifo/all_cf_stations_*.csv'
 CLIFO_DOWNLOAD_DATA = 'static/clifo/all_cf_data_*.csv'
 
 CLEAN_CLIFO = DATA_D / 'clifo_clean.pq'
-MEDIAN_CLIFO = DATA_D / 'clifo_median_frost-{start}-{end}.pq'
+MEDIAN_CLIFO = DATA_D / 'clifo_median_{start}-{end}.pq'
 
-ELEVATION = DATA_D / 'elevation'
+COASTAL_PROXIMITY = 'static/coastal_proximity.tif'
 
 MEDIAN_CLIFO_TPS = DATA_D / 'clifo_tps-{start}-{end}.tif'
 
@@ -28,15 +28,11 @@ rule median_clifo_data:
     log:  LOG_D / 'median_clifo_data_{start}-{end}.log'
     conda: '../envs/pandas.yml'
     params:
-        min_period_Y=lambda wc: 0.5 * (int(wc.end) - int(wc.start)) # Records of less than this value (in years), within the start-end period, will be ignored
+        min_period_Y=lambda wc: 6/18 * (int(wc.end) - int(wc.start)), # Records of less than this value (in years), within the start-end period, will be ignored
+        spatial_filter=True, # Whether to filter out stations that are spatially co-incident
+        spatial_coincidence_threshold=6e3 # Stations within this distance of other stations will be dropped, when their "open" status is False
     script: '../scripts/median_clifo.py'
 
-rule unzip_elevation:
-    output: directory(ELEVATION)
-    log: LOG_D / 'unzip_elevation.log'
-    params:
-        archive=ELEVATION_ARCHIVE
-    shell: 'mkdir -p {output} && unzip -o -d {output} {params.archive} &> {log}'
 
 # TODO I also think distance from the coast should be a covariate
 # TODO output should have a band for each input variable
@@ -44,12 +40,20 @@ rule thin_plate_spline:
     message: 'Apply a thin plate spline spatial interpolation between stations, with a day of year or season length as the dependent variable; and elevation as a covariate'
     input:
         temperature=MEDIAN_CLIFO,
-        elevation=ELEVATION
-    output: MEDIAN_CLIFO_TPS
+        elevation=ELEVATION,
+        coastal_proximity=COASTAL_PROXIMITY
+    output: MEDIAN_CLIFO_TPS,
     conda: '../envs/thinplate.yml'
     log: LOG_D / 'thin_plate_spline_{start}-{end}.log'
     params:
         elevation_file='nzenvds-elevation-v10.tif',
-        x_res=1000,
-        y_res=1000
+        x_res=256*4,
+        y_res=256*4,
+        smooth=5, # Values greater than zero increase the smoothness of the approximation. 0 is for interpolation (default), the function will always go through the nodal points in this case.
+        epsilon=None, # Adjustable constant for gaussian or multiquadrics functions - defaults to approximate average distance between nodes (which is a good start).
+        mahalanobis=True, # Whether to apply Mahalanobis outlier detection (considers the relationship between the dependent variable and the elevation covariate)
+        outlier_threshold=4, # Threshold (Mahalanobis distance)
+        coastal_proximity=True, # Whether to consider coastal_proximity
+        coastal_proximity_log=False, # Whether to apply a log(1 + x) transformation to coastal proximity
+        closed_stations=True, # Whether to include closed stations
     script: '../scripts/tps.py'
