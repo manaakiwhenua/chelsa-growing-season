@@ -41,7 +41,6 @@ def interpolate_station(df):
     station_name = df['Station'].iloc[0]
     df = df.set_index('Date.local').asfreq('D')
     for column in ['Tmax.C', 'Tmin.C', 'Tgmin.C']:
-        # Round to 1 decimal place
         df[column] = df[column].round(1)
         if max_fill_days > 0:
             if df[column].notna().sum() >= 2:
@@ -50,16 +49,16 @@ def interpolate_station(df):
                 logging.warning(f"Not enough data to interpolate {column} for station {station_name}")
     df = df.reset_index()  # Reset the index to include 'Date.local' back as a column
     df['Station'] = station_name  # Reassign the station name to the 'Station' column
-    
     return df
 
 grouped = record_df.groupby('Station')
 interpolated_df = grouped.apply(interpolate_station, include_groups=True).reset_index(drop=True)
 interpolated_df['Year'] = interpolated_df['Date.local'].dt.year
 
-
-# Function to find the first and last date when the temperature first reaches the threshold
 def find_first_last_dates(df):
+    '''
+    Finds the first and last date when the temperature first reaches the threshold
+    '''
     year = df['Date.local'].min().year
     df = df[df['Tmin.C'] <= threshold]
 
@@ -87,11 +86,10 @@ print(result_df)
 
 joined_df = pd.merge(result_df, stations_df, left_on='Station', right_on='name', how='left')
 
-# Convert to GeoDataFrame
 gdf = gpd.GeoDataFrame(
     joined_df,
     geometry=gpd.points_from_xy(joined_df.lon, joined_df.lat),
-    crs="EPSG:4326"  # Specify the coordinate reference system
+    crs="EPSG:4326"
 ).to_crs(epsg='2193')
 
 # Write to GeoParquet file with spatial partitioning

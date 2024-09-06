@@ -34,8 +34,6 @@ rule median_clifo_data:
     script: '../scripts/median_clifo.py'
 
 
-# TODO I also think distance from the coast should be a covariate
-# TODO output should have a band for each input variable
 rule thin_plate_spline:
     message: 'Apply a thin plate spline spatial interpolation between stations, with a day of year or season length as the dependent variable; and elevation as a covariate'
     input:
@@ -49,9 +47,12 @@ rule thin_plate_spline:
         elevation_file='nzenvds-elevation-v10.tif',
         x_res=256*4,
         y_res=256*4,
-        smooth=5, # Values greater than zero increase the smoothness of the approximation. 0 is for interpolation (default), the function will always go through the nodal points in this case.
-        epsilon=None, # Adjustable constant for gaussian or multiquadrics functions - defaults to approximate average distance between nodes (which is a good start).
-        mahalanobis=True, # Whether to apply Mahalanobis outlier detection (considers the relationship between the dependent variable and the elevation covariate)
+        smooth=5, # The interpolant perfectly fits the data when this is set to 0. For large values, the interpolant approaches a least squares fit of a polynomial with the specified degree. Default is 0.
+        kernel='thin_plate_spline',
+        epsilon=None, # Shape parameter that scales the input to the RBF. If kernel is ‘linear’, ‘thin_plate_spline’, ‘cubic’, or ‘quintic’, this defaults to 1 and can be ignored because it has the same effect as scaling the smoothing parameter. Otherwise, this must be specified.
+        neighbors=None, # If specified, the value of the interpolant at each evaluation point will be computed using only this many nearest data points. All the data points are used by default.
+        degree=None,
+        mahalanobis=False, # Whether to apply Mahalanobis outlier detection (considers the relationship between the dependent variable and the elevation covariate)
         outlier_threshold=4, # Threshold (Mahalanobis distance)
         coastal_proximity=True, # Whether to consider coastal_proximity
         coastal_proximity_log=False, # Whether to apply a log(1 + x) transformation to coastal proximity

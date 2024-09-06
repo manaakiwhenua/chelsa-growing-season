@@ -7,7 +7,7 @@ import sys
 import dask.array as da
 import geopandas as gpd
 import rasterio
-from scipy.interpolate import Rbf
+from scipy.interpolate import RBFInterpolator
 from scipy.spatial import distance
 
 logging.basicConfig(level=logging.INFO)
@@ -31,10 +31,9 @@ if not use_closed_stations:
 
 # Load the elevation data from the GeoTIFF
 with rasterio.open(Path(smk.input.elevation) / smk.params.elevation_file) as src:
-    elevation = src.read(1)  # Read the first band
+    elevation = src.read(1)
     transform = src.transform
     elev_meta = src.meta
-    # Use sample points to get corresponding elevation values
     points['elevation'] = [
         v[0] for v in src.sample([(geom.x, geom.y) for geom in points.geometry])
     ]
@@ -52,7 +51,7 @@ grid_x, grid_y = np.meshgrid(
     np.arange(bottom, top, smk.params.y_res)
 )
 
-# Make sure to flip the grid_y array since rasters typically have a top-to-bottom order
+# Flip the grid_y array since rasters have a top-to-bottom orientation
 grid_y = grid_y[::-1]
 
 grid_x_dask = da.from_array(grid_x, chunks=(1000, 1000))
@@ -75,33 +74,32 @@ coastal_proximity_log = smk.params.get('coastal_proximity_log', True)
 if use_coastal_proximity:
 
     with rasterio.open(smk.input.coastal_proximity) as src:
-        prox = src.read(1)  # Read the first band
+        prox = src.read(1)
         transform = src.transform
         elev_meta = src.meta
-        # Use sample points to get corresponding elevation values
-        print(prox)
         if coastal_proximity_log:
             prox = np.log1p(prox)
         points['coastal_proximity'] = [
             v[0] for v in src.sample([(geom.x, geom.y) for geom in points.geometry])
         ]
-        # if coastal_proximity_log:
-        #     points['coastal_proximity'] = np.log1p(points['coastal_proximity'])
-
-    # Extract the corresponding elevation values for the grid
     grid_proximity = prox[row_indices, col_indices]
 
-# sys.exit(1)
 
 mahalanobis = smk.params.get('mahalanobis', True)
+outlier_threshold = smk.params.get('outlier_threshold', 4)
 
-variables = ['First_Frost_DOY', 'Last_Frost_DOY', 'Growing_Season_D']
+growing_season = None
+last_frost = None
+variables = ['Growing_Season_D', 'Last_Frost_DOY', 'First_Frost_DOY']
+
 for band, var in enumerate(variables, start=1):
-    _points = points.copy()
-    _points[var] = _points[var].fillna(0.0 if var == 'Last_Frost_DOY' else 365.0)
+    _points = points.copy() # Copy so we can manipulate the point data without affecting other interpolations
+
+    # Filter out points with nulls so they don't disturb the interpolation with a fill value
+    _points = _points.dropna(subset=[var])
 
     if mahalanobis:
-        before = len(_points)
+        _before = len(_points)
         # Mahalanobis Distance Calculation
         mean_vals = np.mean(_points[['elevation', var]], axis=0)
         cov_matrix = np.cov(_points[['elevation', var]], rowvar=False)
@@ -115,41 +113,54 @@ for band, var in enumerate(variables, start=1):
                 inv_cov_matrix
             ), axis=1
         )
-
-        # Define a threshold for outliers (i.e., Mahalanobis distance)
-        outlier_threshold = smk.params.get('outlier_threshold', 4)
-
-        # Filter out the outliers
         _points = _points[_points['mahalanobis'] <= outlier_threshold]
-        after = len(_points)
-        print(f'mahalanobis (threshold={outlier_threshold}): {before} → {after}')
+        print(f'Mahalanobis (threshold={outlier_threshold}): {_before} stations → {len(_points)} stations')
     
     # Prepare x, y, elevation, and z values
     x = _points.geometry.x.values
     y = _points.geometry.y.values
     elevation_values = _points['elevation'].values
-    z = _points[var].values
+    d_values = _points[var].values
 
+    covariate_grids = (grid_x_dask.ravel(), grid_y_dask.ravel(), grid_elevation.ravel(),)
     if use_coastal_proximity:
 
         proximity_values = _points['coastal_proximity'].values
-        covariates = (elevation_values, proximity_values)
+        y_coords = np.column_stack((x, y, elevation_values, proximity_values))
+        
         if coastal_proximity_log:
-            covariate_grids = (grid_elevation.ravel(), np.log1p(grid_proximity.ravel()),)
+            covariate_grids += (np.log1p(grid_proximity.ravel()),)
         else:
-            covariate_grids = (grid_elevation.ravel(), grid_proximity.ravel(),)
+            covariate_grids += (grid_proximity.ravel(),)
     else:
-        covariates = (elevation_values,)
-        covariate_grids = (grid_elevation.ravel(),)
+        y_coords = np.column_stack((x, y, elevation_values,))
 
-    # Fit the TPS model with x, y, and elevation as inputs
-    tps = Rbf(x, y, *covariates, z, function='thin_plate', smooth=smk.params.get('smooth', 2), epsilon=smk.params.get('epsilon', 1))
+    rbf = RBFInterpolator(
+        y_coords, d_values,
+        neighbors=smk.params.get('neighbors', None), 
+        smoothing=smk.params.get('smooth', None), 
+        kernel=smk.params.get('kernel', 'thin_plate_spline'),
+        epsilon=smk.params.get('epsilon', None), 
+        degree=smk.params.get('degree', None)
+    )
 
+    grid_coords = np.column_stack(covariate_grids)
     # Predict temperature over the grid, including grid elevation
-    grid_interp = tps(grid_x_dask.ravel(), grid_y_dask.ravel(), *covariate_grids).reshape(grid_x.shape)
+    grid_interp = rbf(grid_coords).reshape(grid_x.shape)
+
+    grid_interp = np.clip(np.rint(np.ma.masked_outside(grid_interp, -1e4, 1e4)), a_min=0, a_max=365)
+
+    if var == 'Growing_Season_D':
+        growing_season = grid_interp
+    elif var == 'Last_Frost_DOY':
+        grid_interp = np.where((growing_season < 365) & ~(np.ma.getmask(growing_season)), grid_interp, 0)
+        grid_interp = np.where(np.ma.getmask(growing_season), -1, grid_interp)
+        last_frost = grid_interp
+    else:
+        # To produce internally consistent data, we calculate the first frost DOY by reference to the last frost, and the growing season, therefore ignoring the grid interpolation result
+        grid_interp = (last_frost + growing_season) % 365
 
     # Update the metadata to reflect the new resolution and grid size
-
     if band == 1:
         output_meta = elev_meta.copy()
         output_meta.update({
@@ -161,12 +172,12 @@ for band, var in enumerate(variables, start=1):
                 grid_interp.shape[1], grid_interp.shape[0]
             ),
             "count": len(variables),
-            "dtype": 'float32'
+            "dtype": 'int16',
+            "nodata": -1
         })
         dst = rasterio.open(smk.output[0], "w", **output_meta)
 
     print(f'writing band {band} ({var})')
-    # Save the GeoTIFF
     dst.write(grid_interp.astype(rasterio.float32), band)
     dst.set_band_description(band, var)
 

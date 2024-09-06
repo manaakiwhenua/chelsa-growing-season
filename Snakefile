@@ -24,5 +24,6 @@ include: "rules/chelsa.smk"
 include: "rules/clifo.smk"
 
 rule all:
-    input: map(lambda period: expand(SUMMARY_TABLE_CSV, start=period[0], end=period[-1]), FROST_PERIODS)
-
+    input:
+        chelsa=map(lambda period: expand(SUMMARY_TABLE_CSV, start=period[0], end=period[-1]), FROST_PERIODS),
+        clifo=map(lambda period: expand(MEDIAN_CLIFO_TPS, start=period[0], end=period[-1]), FROST_PERIODS)
