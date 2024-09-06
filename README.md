@@ -117,7 +117,7 @@ This was more successful, although the data is relatively low resolution (30 arc
 
 ### Clifo
 
-![Map of New Zealand indicating the end of the growing season, using Clifo data](./maps/clifomaps.png)
+![Map of New Zealand indicating the end of the growing season, using Clifo data](./maps/clifo/maps.png)
 
 ## Method
 
@@ -147,8 +147,6 @@ Note that increasing the resolution, or the number of stations, has a strong inf
 ![Directed acyclic graph](./images/dag.png)
 
 ![Rulegraph](./images/rulegraph.png)
-
-
 
 ## References
 
