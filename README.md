@@ -70,9 +70,9 @@ through the [National Climate Database](https://cliflo.niwa.co.nz/).
 
 ---
 
-Wratt et al. (2006)[[3]](#3) provide further detail about a thin plate spline smoothing for climate variables. While conceptually helpful, code, data and smoothign parameters are still not available and attempts in this repository to reproduce the technique have not produced useful data.
+Wratt et al. (2006)[[3]](#3) provide further detail about a thin plate spline smoothing for climate variables. While conceptually helpful, code, data and smoothing parameters are still not available and attempts made in this repository to reproduce these maps have been met with mixed success.
 
-**If you are interested in re-attempting this, please feel free to contribute improvements back to this repository.**
+**If you are interested in re-attempting this to improve fidelity to the original method and outut, please feel free to contribute improvements back to this repository.**
 
 ## Reproduction
 
@@ -80,9 +80,9 @@ Unfortunately the images in [[1]](#1) are the only representations of the growin
 
 This repository contains code used to attempt a reproduction of these maps. However, as there is insufficient detail in the described method, this was ultimately unsuccessful.
 
-As an alternative option, we also generated growing season maps using freely available global climate data from [CHELSA](https://chelsa-climate.org/) (climatologies at high resolution for the earth's land surface areas).
+As an alternative option to make public some useful information, we also generated growing season maps using freely available global climate data from [CHELSA](https://chelsa-climate.org/) (climatologies at high resolution for the earth's land surface areas).
 
-This was more successful, although the data is relatively low resolution (30 arc seconds), and not in an appropriate projected coordinate system. This repository also contains code for producing the derived growing season maps.
+This was more successful, although the data is relatively low resolution (30 arc seconds), and not in an appropriate projected coordinate system (it has not been resampled). This repository also contains code for producing the derived growing season maps from CHELSA data, which should be considered the primary output—although the CliFlo derived maps are available for download too).
 
 ### Key missing details
 
