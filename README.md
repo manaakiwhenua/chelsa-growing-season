@@ -1,5 +1,7 @@
 # chelsa-growing-season
 
+[![manaakiwhenua-standards](https://github.com/manaakiwhenua/chelsa-growing-season/workflows/manaakiwhenua-standards/badge.svg)](https://github.com/manaakiwhenua/manaakiwhenua-standards)
+
 ## Background
 
 In [_Wetland delineation hydrology tool for Aotearoa New Zealand_](https://environment.govt.nz/assets/publications/wetland-hydrology-tool-final.pdf)[[1]](#1), §2 pp11-14, a method is briefly described for determining a growing season using NIWA's National Climate Database (https://cliflo.niwa.co.nz/).
