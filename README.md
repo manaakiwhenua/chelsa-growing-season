@@ -114,10 +114,15 @@ This was more successful, although the data is relatively low resolution (30 arc
 | Greymouth            | West Coast             | Regional         | Continuous         | Continuous        |
 | Dunedin              | Otago                  | Regional         | 1 Jul              | 31 Jul            |
 
+Citations:
 
-### Clifo
+Stefan Lange, Matthias Mengel, Simon Treu, Matthias Büchner (2023): ISIMIP3a atmospheric climate input data (v1.2). ISIMIP Repository. https://doi.org/10.48364/ISIMIP.982724.2
 
-![Map of New Zealand indicating the end of the growing season, using Clifo data](./maps/clifo/maps.png)
+Dirk N. Karger, Stefan Lange, Chantal Hari, Christopher P.O. Reyer, Niklaus E. Zimmermann (2022): CHELSA-W5E5 v1.0: W5E5 v1.0 downscaled with CHELSA v2.0. ISIMIP Repository. https://doi.org/10.48364/ISIMIP.836809.3
+
+### CliFlo
+
+![Map of New Zealand indicating the end of the growing season, using CliFlo data](./maps/cliflo/maps.png)
 
 ## Method
 
@@ -129,11 +134,11 @@ This was more successful, although the data is relatively low resolution (30 arc
 4. Calculate the median frost day for the first and last frost across a range of years. The output is written as NetCDF data, to match the input. (Rule `median_frost_doy`.)
 5. We can also produce a summary table to compare against the baseline data. (Rule `summary_table`.)
 
-### Clifo
+### CliFlo
 
-1. Data is downloaded from Clifo. This is done in a semi-automated fashion, but is not part of the workflow because it does require manual intervention. (The reason is that the Clifo database has a download limit of 2 million rows, which this exceeds. When the limit is reached, no data is returned until the user manually resets the user account.)
-2. Clifo data is cleaned. Duplicate data (due to the semi-automated download process) is removed. Interpolation is performed to fill some small gaps (up to three days by default) using an [Akima spline interpolation](https://en.wikipedia.org/wiki/Akima_spline). In the same step, the first and last date of the frost threshold being breached is recorded, on an annual basis. (Rule `clean_clifo_data`.)
-3. The median frost first/last day-of-year is captured for each station, over a period. The growing season is determined by these values. By default, stations are excluded from the result set if they are not present in the record for 6/18 of the requested period (in years). Also, stations are filtered out if they are within a distance threshold of other stations (the station with the longest record within the period is kept). (Rule `median_clifo_data`)
+1. Data is downloaded from CliFlo. This is done in a semi-automated fashion, but is not part of the workflow because it does require manual intervention. (The reason is that the CliFlo database has a download limit of 2 million rows, which this exceeds. When the limit is reached, no data is returned until the user manually resets the user account.)
+2. CliFlo data is cleaned. Duplicate data (due to the semi-automated download process) is removed. Interpolation is performed to fill some small gaps (up to three days by default) using an [Akima spline interpolation](https://en.wikipedia.org/wiki/Akima_spline). In the same step, the first and last date of the frost threshold being breached is recorded, on an annual basis. (Rule `clean_cliflo_data`.)
+3. The median frost first/last day-of-year is captured for each station, over a period. The growing season is determined by these values. By default, stations are excluded from the result set if they are not present in the record for 6/18 of the requested period (in years). Also, stations are filtered out if they are within a distance threshold of other stations (the station with the longest record within the period is kept). (Rule `median_cliflo_data`)
 4. To produce an interpolated result, we use a thin plate spline radial basis function. The dependent variables are the median day of year (or median growing season period, in days). The covariates are elevation and coastal proximity. Stations may be removed if they exceed a Mahalanobis distance threshold (considering the dependent variable, together with elevation). The growing season is interpolated first (using all remaining stations) then the median date of the last killing frost (omitting stations with no frost record to avoid specifying a fill value). The median date of the first frost is then derived from these estimates so that the output is internally consistent (i.e. the growing season length accords with the median dates). The output is written as three bands of a GeoTIFF with band descriptions. (Rule `thin_plate_spline`).
 
 Various parameters can be adjusted without editing the scripts, such as the value of ε, the number of neighbours to consider, the smoothness of the approximation, whether to perform outlier detection, the outlier threshold, the spatial coincidence threshold, whether to include coastal proximty as a covariate, and whether to log transform the coastal proximity measurement.

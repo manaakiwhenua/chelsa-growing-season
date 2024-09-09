@@ -1,2 +1,3 @@
 .snakemake/
 config.local.yml
+static/cliflo/all_cf_*.csv

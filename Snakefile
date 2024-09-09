@@ -21,9 +21,9 @@ FROST_PERIODS = [
 
 include: "rules/elevation.smk"
 include: "rules/chelsa.smk"
-include: "rules/clifo.smk"
+include: "rules/cliflo.smk"
 
 rule all:
     input:
         chelsa=map(lambda period: expand(SUMMARY_TABLE_CSV, start=period[0], end=period[-1]), FROST_PERIODS),
-        clifo=map(lambda period: expand(MEDIAN_CLIFO_TPS, start=period[0], end=period[-1]), FROST_PERIODS)
+        cliflo=map(lambda period: expand(MEDIAN_CLIFLO_TPS, start=period[0], end=period[-1]), FROST_PERIODS)
